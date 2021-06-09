@@ -1,27 +1,23 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
-    public CharacterController CharacterController;
+    public CharacterController characterController;
     public Joystick joystick;
-    public Vector3 MoveVector { get; set; }
+    public new Transform camera;
+
+    private Vector3 MoveVector { get; set; }
     public float speed;
     public float turnSmooth = 0.1f;
-    float turnSmoothVelocity;
-    public Transform camera;
+    private float turnSmoothVelocity;
 
     // Update is called once per frame
-    void Update()
+    private void Update()
     {
         // get joystick input
         MoveVector = Input();
 
-        // normalize the input direction with camera angle
-        //MoveVector = RotateWithCam();
-
-        // move the ball
+        // move the character
         Move();
 
         // reset the ball when it drop outside of the world
@@ -33,27 +29,12 @@ public class PlayerController : MonoBehaviour
 
     private Vector3 Input()
     {
+        // init joystick input
         MoveVector = Vector3.zero;
-        float horizontal = joystick.Horizontal;
-        float vertical = joystick.Vertical;
-        Vector3 direction = new Vector3(horizontal, 0f, vertical).normalized;
-
+        var horizontal = joystick.Horizontal;
+        var vertical = joystick.Vertical;
+        var direction = new Vector3(horizontal, 0f, vertical).normalized;
         return direction;
-    }
-
-    private Vector3 RotateWithCam()
-    {
-        if (camera != null)
-        {
-            Vector3 direction = camera.TransformDirection(MoveVector);
-            direction.Set(direction.x, 0, direction.z);
-            return direction.normalized * MoveVector.magnitude;
-        }
-        else
-        {
-            camera = Camera.main.transform;
-            return MoveVector;
-        }
     }
 
     private void Move()
@@ -61,26 +42,40 @@ public class PlayerController : MonoBehaviour
         if (MoveVector.magnitude >= 0.1f)
         {
             // rotate player with camera view
-            float targetAngle = Mathf.Atan2(MoveVector.x, MoveVector.z) * Mathf.Rad2Deg + camera.eulerAngles.y;
+            var targetAngle = Mathf.Atan2(MoveVector.x, MoveVector.z) * Mathf.Rad2Deg + camera.eulerAngles.y;
 
             // smooth the rotation
-            float angle = Mathf.SmoothDampAngle(transform.eulerAngles.y, targetAngle, ref turnSmoothVelocity, turnSmooth);
+            var angle = Mathf.SmoothDampAngle(transform.eulerAngles.y, targetAngle, ref turnSmoothVelocity, turnSmooth);
+            var position = transform.position;
             transform.rotation = Quaternion.Euler(0f, angle, 0f);
-            transform.position.Set(transform.position.x, 1.1f, transform.position.z);
+            position.Set(position.x, 1.1f, position.z);
 
             // move player with camera view
-            Vector3 moveDir = Quaternion.Euler(0f, targetAngle, 0f) * new Vector3(0, -1, 1);
+            var moveDir = Quaternion.Euler(0f, targetAngle, 0f) * new Vector3(0, -1, 1);
 
-            CharacterController.Move(moveDir.normalized * speed * Time.deltaTime);
+            characterController.Move(moveDir.normalized * (speed * Time.deltaTime));
         }
         else
         {
-            CharacterController.Move(new Vector3(0, -1, 0)  * speed * Time.deltaTime);
+            characterController.Move(new Vector3(0, -1, 0) * (speed * Time.deltaTime));
 
             if (transform.position.y <= -1)
             {
                 transform.position = new Vector3(0, 2, 0);
             }
         }
+    }
+
+    private void OnControllerColliderHit(ControllerColliderHit hit)
+    {
+        var body = hit.collider.attachedRigidbody;
+
+        // no rigidbody
+        if (body == null || body.isKinematic) return;
+
+        Debug.Log(body.name);
+
+        // apply force to the touched object
+        body.AddForce(transform.forward * speed, ForceMode.Impulse);
     }
 }

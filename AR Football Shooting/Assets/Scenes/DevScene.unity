@@ -551,11 +551,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d0adbf985df79a94587d3e6da0de3efe, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  CharacterController: {fileID: 630727950}
+  characterController: {fileID: 630727950}
   joystick: {fileID: 1192817921}
+  camera: {fileID: 2021086662}
   speed: 4
   turnSmooth: 0.1
-  camera: {fileID: 2021086662}
 --- !u!1 &631621240
 GameObject:
   m_ObjectHideFlags: 0

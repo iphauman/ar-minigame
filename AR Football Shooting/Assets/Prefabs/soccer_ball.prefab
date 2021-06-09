@@ -76,6 +76,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a0e7ebc309adca04c91f03c23977016f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  depthBoundary: 0
+  FootballResponwnPostion: {x: 0, y: 5, z: 0}
 --- !u!1 &5059055513817372918
 GameObject:
   m_ObjectHideFlags: 0

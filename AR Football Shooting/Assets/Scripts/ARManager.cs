@@ -1,27 +1,13 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using Vuforia;
 
 public class ARManager : MonoBehaviour
 {
     public bool tracked;
 
-    void Start()
-    {
-    }
-
     // Update is called once per frame
-    void Update()
+    private void Update()
     {
-        if (tracked)
-        {
-            Time.timeScale = 1;
-        }
-        else
-        {
-            Time.timeScale = 0;
-        }
+        Time.timeScale = tracked ? 1 : 0;
     }
 
     public void Tracked()

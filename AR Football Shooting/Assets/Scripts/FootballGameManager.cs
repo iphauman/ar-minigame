@@ -5,15 +5,15 @@ using UnityEngine;
 
 public class FootballGameManager : MonoBehaviour
 {
-    public GameObject Footballs;    // parent of instantiated footballs
-    
+    public GameObject Footballs; // parent of instantiated footballs
+
     public GameObject Football;
     public Vector3 FootballResponwnPostion;
     public List<GameObject> FootballHolder;
 
     private Action InstantiateFootball;
 
-    void Start()
+    private void Start()
     {
         FootballHolder = new List<GameObject>();
 
@@ -22,35 +22,30 @@ public class FootballGameManager : MonoBehaviour
     }
 
     // Update is called once per frame
-    void Update()
+    private void Update()
     {
         CheckOutboundFootball();
 
         InstantiateFootball();
-        
     }
 
     private void DefaultInstantiate()
     {
-        if (FootballHolder.Count <= 0)
-        {
-            GameObject ball = Instantiate(Football, FootballResponwnPostion, Quaternion.identity);
-            ball.transform.SetParent(Footballs.transform);
-            FootballHolder.Add(ball);
-        }
+        if (FootballHolder.Count > 0) return;
+        var ball = Instantiate(Football, FootballResponwnPostion, Quaternion.identity);
+        ball.transform.SetParent(Footballs.transform);
+        FootballHolder.Add(ball);
     }
 
     public void CheckOutboundFootball()
     {
-        List<GameObject> Temp = new List<GameObject>();
+        var Temp = new List<GameObject>();
         // check if the ball is out of bound
-        foreach (GameObject ball in FootballHolder)
+        foreach (var ball in FootballHolder)
         {
-            if (ball.transform.position.y < 0)
-            {
-                Temp.Add(ball);
-                Destroy(ball);
-            }
+            if (!(ball.transform.position.y < 0)) continue;
+            Temp.Add(ball);
+            Destroy(ball);
         }
 
         // remove the destroy football from the list
