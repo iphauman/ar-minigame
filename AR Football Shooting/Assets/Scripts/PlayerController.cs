@@ -6,10 +6,18 @@ public class PlayerController : MonoBehaviour
     public Joystick joystick;
     public new Transform camera;
 
+    // character movement
     private Vector3 MoveVector { get; set; }
     public float speed;
     public float turnSmooth = 0.1f;
     private float turnSmoothVelocity;
+    [Range(-10, -1)] public int fallingBoundary;
+
+    // football control
+    public Rigidbody football;
+    public float movePower;
+    public float shotPower;
+    public float detectRange;
 
     // Update is called once per frame
     private void Update()
@@ -19,21 +27,17 @@ public class PlayerController : MonoBehaviour
 
         // move the character
         Move();
-
-        // reset the ball when it drop outside of the world
-        /*if (transform.position.y < -10)
-        {
-            transform.position = new Vector3(0f, 3f, 0f);
-        }*/
     }
 
     private Vector3 Input()
     {
         // init joystick input
         MoveVector = Vector3.zero;
+
         var horizontal = joystick.Horizontal;
         var vertical = joystick.Vertical;
         var direction = new Vector3(horizontal, 0f, vertical).normalized;
+
         return direction;
     }
 
@@ -41,28 +45,36 @@ public class PlayerController : MonoBehaviour
     {
         if (MoveVector.magnitude >= 0.1f)
         {
-            // rotate player with camera view
+            // get rotation value with camera view
             var targetAngle = Mathf.Atan2(MoveVector.x, MoveVector.z) * Mathf.Rad2Deg + camera.eulerAngles.y;
 
             // smooth the rotation
-            var angle = Mathf.SmoothDampAngle(transform.eulerAngles.y, targetAngle, ref turnSmoothVelocity, turnSmooth);
-            var position = transform.position;
-            transform.rotation = Quaternion.Euler(0f, angle, 0f);
-            position.Set(position.x, 1.1f, position.z);
+            var smoothAngle =
+                Mathf.SmoothDampAngle(transform.eulerAngles.y, targetAngle, ref turnSmoothVelocity, turnSmooth);
 
-            // move player with camera view
-            var moveDir = Quaternion.Euler(0f, targetAngle, 0f) * new Vector3(0, -1, 1);
+            // rotate the character
+            transform.rotation = Quaternion.Euler(0f, smoothAngle, 0f);
 
+            // move the character
+            var moveDir = Quaternion.Euler(0f, targetAngle, 0f) * Vector3.forward;
             characterController.Move(moveDir.normalized * (speed * Time.deltaTime));
         }
-        else
-        {
-            characterController.Move(new Vector3(0, -1, 0) * (speed * Time.deltaTime));
 
-            if (transform.position.y <= -1)
-            {
-                transform.position = new Vector3(0, 2, 0);
-            }
+        // add gravity to the character
+        if (!characterController.isGrounded)
+        {
+            characterController.Move(new Vector3(0f, -9.81f, 0f) * Time.deltaTime);
+        }
+
+        // reset the character when it drops outside of the ground
+        if (transform.position.y < fallingBoundary)
+        {
+            transform.position = new Vector3(0f, 3f, 0f);
+        }
+
+        if (UnityEngine.Input.GetKeyDown(KeyCode.B))
+        {
+            ShotBall();
         }
     }
 
@@ -73,9 +85,37 @@ public class PlayerController : MonoBehaviour
         // no rigidbody
         if (body == null || body.isKinematic) return;
 
-        Debug.Log(body.name);
+        // Debug.Log(body.name);
 
-        // apply force to the touched object
-        body.AddForce(transform.forward * speed, ForceMode.Impulse);
+        if (body.CompareTag("Football"))
+        {
+            // hold the body
+            football = body;
+            MoveBall();
+        }
+    }
+
+    public void ShotBall()
+    {
+        if (!football) return;
+
+        var distance = Vector3.Distance(transform.position, football.transform.position);
+        if (distance >= detectRange) return;
+
+
+        // add force to the ball
+        football.AddForce(transform.forward * shotPower, ForceMode.Impulse);
+    }
+
+    private void MoveBall()
+    {
+        if (!football) return;
+
+        // update the dribbler
+        football.GetComponent<Football>().dribbler = transform.name;
+
+        // add force to the ball
+        football.AddForce(transform.forward * movePower, ForceMode.Impulse);
+        // football.transform.SetParent(transform);
     }
 }

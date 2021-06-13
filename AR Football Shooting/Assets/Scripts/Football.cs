@@ -1,11 +1,10 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class Football : MonoBehaviour
 {
-    public float depthBoundary = 0f;
+    public float depthBoundary;
+    public string dribbler;
+    public FootballStatus status;
 
     public enum FootballStatus
     {
@@ -16,14 +15,9 @@ public class Football : MonoBehaviour
     private void OnTriggerEnter(Collider other)
     {
         Debug.Log(other.name);
-        if (other.CompareTag("Player"))
+        if (other.CompareTag("Goal"))
         {
-            Debug.Log("Player interact with football.");
+            Debug.Log(dribbler + " shot into the goal.");
         }
-    }
-
-    private void OnCollisionEnter(Collision other)
-    {
-        Debug.Log(other.collider.name);
     }
 }
