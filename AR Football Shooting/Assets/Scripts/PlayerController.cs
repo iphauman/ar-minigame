@@ -1,10 +1,11 @@
+using System;
 using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
     public CharacterController characterController;
     public Joystick joystick;
-    public new Transform camera;
+    public GameObject currentCamera;
 
     // character movement
     private Vector3 MoveVector { get; set; }
@@ -15,9 +16,15 @@ public class PlayerController : MonoBehaviour
 
     // football control
     public Rigidbody football;
-    public float movePower;
-    public float shotPower;
-    public float detectRange;
+    [SerializeField] private float movePower;
+    [SerializeField] private float shotPower;
+    [SerializeField] private float detectRange;
+    public FootballGameManager manager;
+
+    private void Awake()
+    {
+        currentCamera = GameObject.FindWithTag("MainCamera");
+    }
 
     // Update is called once per frame
     private void Update()
@@ -46,7 +53,7 @@ public class PlayerController : MonoBehaviour
         if (MoveVector.magnitude >= 0.1f)
         {
             // get rotation value with camera view
-            var targetAngle = Mathf.Atan2(MoveVector.x, MoveVector.z) * Mathf.Rad2Deg + camera.eulerAngles.y;
+            var targetAngle = Mathf.Atan2(MoveVector.x, MoveVector.z) * Mathf.Rad2Deg + currentCamera.transform.eulerAngles.y;
 
             // smooth the rotation
             var smoothAngle =
@@ -90,32 +97,45 @@ public class PlayerController : MonoBehaviour
         if (body.CompareTag("Football"))
         {
             // hold the body
-            football = body;
-            MoveBall();
+            // football = body;
+            MoveBall(body);
         }
     }
 
     public void ShotBall()
     {
-        if (!football) return;
+        foreach (var ball in manager.GetFootballList())
+        {
+            if (Vector3.Distance(transform.position, ball.transform.position) < detectRange)
+            {
+                // found football within range
+                football = ball.GetComponent<Rigidbody>();
+            }
+        }
+
+        if (!football)
+        {
+            Debug.Log("No target");
+            return;
+        }
 
         var distance = Vector3.Distance(transform.position, football.transform.position);
         if (distance >= detectRange) return;
-
-
+        
         // add force to the ball
         football.AddForce(transform.forward * shotPower, ForceMode.Impulse);
+        football = null;
     }
 
-    private void MoveBall()
+    private void MoveBall(Rigidbody target)
     {
-        if (!football) return;
+        // if (!football) return;
 
         // update the dribbler
-        football.GetComponent<Football>().dribbler = transform.name;
+        target.GetComponent<Football>().dribbler = transform.name;
 
         // add force to the ball
-        football.AddForce(transform.forward * movePower, ForceMode.Impulse);
+        target.AddForce(transform.forward * movePower, ForceMode.Impulse);
         // football.transform.SetParent(transform);
     }
 }

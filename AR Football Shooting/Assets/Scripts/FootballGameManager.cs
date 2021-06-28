@@ -9,7 +9,12 @@ public class FootballGameManager : MonoBehaviour
 
     public GameObject Football;
     public Vector3 FootballResponwnPostion;
-    public List<GameObject> FootballHolder;
+    private List<GameObject> FootballHolder { get; set; }
+
+    public List<GameObject> GetFootballList()
+    {
+        return FootballHolder;
+    }
 
     private Action InstantiateFootball;
 
