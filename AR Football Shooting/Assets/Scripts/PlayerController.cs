@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 
 public class PlayerController : MonoBehaviour
@@ -106,24 +105,26 @@ public class PlayerController : MonoBehaviour
     {
         foreach (var ball in manager.GetFootballList())
         {
-            if (Vector3.Distance(transform.position, ball.transform.position) < detectRange)
-            {
-                // found football within range
-                football = ball.GetComponent<Rigidbody>();
-            }
+            if (!(Vector3.Distance(transform.position, ball.transform.position) < detectRange)) continue;
+            // found football within range
+            football = ball.GetComponent<Rigidbody>();
+            break;
         }
 
+        // shot if within the range
         if (!football)
         {
             Debug.Log("No target");
             return;
         }
-
-        var distance = Vector3.Distance(transform.position, football.transform.position);
-        if (distance >= detectRange) return;
         
+        // update the dribbler
+        football.GetComponent<Football>().dribbler = transform.name;
+
         // add force to the ball
         football.AddForce(transform.forward * shotPower, ForceMode.Impulse);
+        
+        // untrack object
         football = null;
     }
 
@@ -133,7 +134,7 @@ public class PlayerController : MonoBehaviour
 
         // update the dribbler
         target.GetComponent<Football>().dribbler = transform.name;
-
+        
         // add force to the ball
         target.AddForce(transform.forward * movePower, ForceMode.Impulse);
         // football.transform.SetParent(transform);
